@@ -27,22 +27,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // Routes
-
-// Dashboard page (sem login)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 // Get all sales
 app.get('/api/sales', async (req, res) => {
     try {
-        const result = await pool.query(
-            'SELECT * FROM sales ORDER BY date DESC'
-        );
+        const result = await pool.query('SELECT * FROM sales ORDER BY date DESC');
         res.json(result.rows);
     } catch (error) {
         console.error('Erro ao buscar vendas:', error);
@@ -57,8 +49,7 @@ app.post('/api/sales', async (req, res) => {
     try {
         const result = await pool.query(
             `INSERT INTO sales (date, lola_modas, lala_daroca, duda_modas, ju_dourado, maria_dourado) 
-             VALUES ($1, $2, $3, $4, $5, $6) 
-             RETURNING *`,
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [date, lola_modas, lala_daroca, duda_modas, ju_dourado, maria_dourado]
         );
         res.json(result.rows[0]);
@@ -79,11 +70,9 @@ app.put('/api/sales/:id', async (req, res) => {
     
     try {
         const result = await pool.query(
-            `UPDATE sales 
-             SET date = $1, lola_modas = $2, lala_daroca = $3, duda_modas = $4, 
-                 ju_dourado = $5, maria_dourado = $6
-             WHERE id = $7 
-             RETURNING *`,
+            `UPDATE sales SET date = $1, lola_modas = $2, lala_daroca = $3, 
+             duda_modas = $4, ju_dourado = $5, maria_dourado = $6
+             WHERE id = $7 RETURNING *`,
             [date, lola_modas, lala_daroca, duda_modas, ju_dourado, maria_dourado, id]
         );
         
@@ -123,9 +112,7 @@ app.delete('/api/sales/:id', async (req, res) => {
 // Get monthly meta
 app.get('/api/settings/meta', async (req, res) => {
     try {
-        const result = await pool.query(
-            "SELECT value FROM settings WHERE key = 'monthly_meta'"
-        );
+        const result = await pool.query("SELECT value FROM settings WHERE key = 'monthly_meta'");
         res.json({ meta: parseFloat(result.rows[0].value) });
     } catch (error) {
         console.error('Erro ao buscar meta:', error);
@@ -138,10 +125,7 @@ app.put('/api/settings/meta', async (req, res) => {
     const { meta } = req.body;
     
     try {
-        await pool.query(
-            "UPDATE settings SET value = $1 WHERE key = 'monthly_meta'",
-            [meta.toString()]
-        );
+        await pool.query("UPDATE settings SET value = $1 WHERE key = 'monthly_meta'", [meta.toString()]);
         res.json({ success: true, meta });
     } catch (error) {
         console.error('Erro ao atualizar meta:', error);
@@ -168,37 +152,34 @@ app.get('/api/export', async (req, res) => {
         }
         
         query += ' ORDER BY date ASC';
-        
         const result = await pool.query(query, params);
         
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Vendas TikTok Shop');
         
-        const columns = [
-            { header: 'Data', key: 'date', width: 15 },
-            { header: '@lolamodas.ia', key: 'lola_modas', width: 18 },
-            { header: '@laladaroca', key: 'lala_daroca', width: 18 },
-            { header: '@dudamodas05', key: 'duda_modas', width: 18 },
-            { header: '@judourado.shop', key: 'ju_dourado', width: 20 },
-            { header: '@mariadourado.shop', key: 'maria_dourado', width: 22 },
-            { header: 'Total', key: 'total', width: 18 }
-        ];
+        const accountMap = {
+            '@lolamodas.ia': 'lola_modas',
+            '@laladaroca': 'lala_daroca',
+            '@dudamodas05': 'duda_modas',
+            '@judourado.shop': 'ju_dourado',
+            '@mariadourado.shop': 'maria_dourado'
+        };
         
         if (account && account !== 'all') {
-            const accountMap = {
-                '@lolamodas.ia': 'lola_modas',
-                '@laladaroca': 'lala_daroca',
-                '@dudamodas05': 'duda_modas',
-                '@judourado.shop': 'ju_dourado',
-                '@mariadourado.shop': 'maria_dourado'
-            };
-            
             worksheet.columns = [
                 { header: 'Data', key: 'date', width: 15 },
                 { header: account, key: accountMap[account], width: 20 }
             ];
         } else {
-            worksheet.columns = columns;
+            worksheet.columns = [
+                { header: 'Data', key: 'date', width: 15 },
+                { header: '@lolamodas.ia', key: 'lola_modas', width: 18 },
+                { header: '@laladaroca', key: 'lala_daroca', width: 18 },
+                { header: '@dudamodas05', key: 'duda_modas', width: 18 },
+                { header: '@judourado.shop', key: 'ju_dourado', width: 20 },
+                { header: '@mariadourado.shop', key: 'maria_dourado', width: 22 },
+                { header: 'Total', key: 'total', width: 18 }
+            ];
         }
         
         worksheet.getRow(1).font = { bold: true, size: 12 };
@@ -210,11 +191,8 @@ app.get('/api/export', async (req, res) => {
         worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
         
         let totalGeneral = {
-            lola_modas: 0,
-            lala_daroca: 0,
-            duda_modas: 0,
-            ju_dourado: 0,
-            maria_dourado: 0
+            lola_modas: 0, lala_daroca: 0, duda_modas: 0,
+            ju_dourado: 0, maria_dourado: 0
         };
         
         result.rows.forEach(row => {
@@ -232,14 +210,6 @@ app.get('/api/export', async (req, res) => {
             totalGeneral.maria_dourado += parseFloat(row.maria_dourado);
             
             if (account && account !== 'all') {
-                const accountMap = {
-                    '@lolamodas.ia': 'lola_modas',
-                    '@laladaroca': 'lala_daroca',
-                    '@dudamodas05': 'duda_modas',
-                    '@judourado.shop': 'ju_dourado',
-                    '@mariadourado.shop': 'maria_dourado'
-                };
-                
                 worksheet.addRow({
                     date: formattedDate,
                     [accountMap[account]]: parseFloat(row[accountMap[account]])
@@ -259,14 +229,6 @@ app.get('/api/export', async (req, res) => {
         
         worksheet.addRow({});
         
-        const accountMap = {
-            '@lolamodas.ia': 'lola_modas',
-            '@laladaroca': 'lala_daroca',
-            '@dudamodas05': 'duda_modas',
-            '@judourado.shop': 'ju_dourado',
-            '@mariadourado.shop': 'maria_dourado'
-        };
-        
         const totalRowData = (account && account !== 'all') ? {
             date: 'TOTAL',
             [accountMap[account]]: totalGeneral[accountMap[account]]
@@ -283,7 +245,6 @@ app.get('/api/export', async (req, res) => {
         };
         
         const totalRow = worksheet.addRow(totalRowData);
-        
         totalRow.font = { bold: true };
         totalRow.fill = {
             type: 'pattern',
@@ -314,7 +275,6 @@ app.get('/api/export', async (req, res) => {
     }
 });
 
-// Start server
 app.listen(PORT, () => {
     console.log(`✓ Servidor rodando na porta ${PORT}`);
 });
