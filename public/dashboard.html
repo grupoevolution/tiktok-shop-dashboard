@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Shop Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1><i class="fab fa-tiktok"></i> TikTok Shop Dashboard</h1>
+                    <p>Gestão Completa das suas Vendas</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </button>
+            <button class="tab" onclick="switchTab('manage')">
+                <i class="fas fa-database"></i> Gerenciar Dados
+            </button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Alert -->
+            <div id="alertDashboard" class="alert"></div>
+
+            <!-- Fixed Cards - Always Visible -->
+            <div class="fixed-cards-section">
+                <h2 class="fixed-cards-title"><i class="fas fa-star"></i> Visão Geral</h2>
+                <div class="fixed-cards-grid" id="fixedCards">
+                    <!-- Fixed cards will be generated here -->
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Meta Mensal -->
+            <div class="meta-container">
+                <div class="meta-header">
+                    <h3><i class="fas fa-bullseye"></i> Meta Mensal</h3>
+                    <button class="meta-edit" onclick="editMeta()">
+                        <i class="fas fa-edit"></i> Editar Meta
+                    </button>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="metaProgress">0%</div>
+                </div>
+                <div class="progress-info">
+                    <span id="metaCurrent">R$ 0,00</span>
+                    <span id="metaTarget">Meta: R$ 0,00</span>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <h3 class="filters-title"><i class="fas fa-filter"></i> Filtros de Análise</h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label><i class="fas fa-user"></i> Conta</label>
+                        <select id="filterAccount" onchange="applyFilters()">
+                            <option value="all">Todas as Contas</option>
+                            <option value="@lolamodas.ia">@lolamodas.ia</option>
+                            <option value="@laladaroca">@laladaroca</option>
+                            <option value="@dudamodas05">@dudamodas05</option>
+                            <option value="@judourado.shop">@judourado.shop</option>
+                            <option value="@mariadourado.shop">@mariadourado.shop</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar"></i> Período</label>
+                        <select id="filterPeriod" onchange="toggleCustomDates()">
+                            <option value="daily">Diário</option>
+                            <option value="weekly">Semanal</option>
+                            <option value="monthly">Mensal</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" id="customStartGroup" style="display:none;">
+                        <label><i class="fas fa-calendar-day"></i> Data Inicial</label>
+                        <input type="date" id="customStartDate">
+                    </div>
+                    <div class="filter-group" id="customEndGroup" style="display:none;">
+                        <label><i class="fas fa-calendar-day"></i> Data Final</label>
+                        <input type="date" id="customEndDate">
+                    </div>
+                    <div class="filter-group">
+                        <label style="opacity:0;">.</label>
+                        <button class="btn" onclick="applyFilters()">
+                            <i class="fas fa-filter"></i> Aplicar Filtros
+                        </button>
+                    </div>
+                    <div class="filter-group">
+                        <label style="opacity:0;">.</label>
+                        <button class="btn btn-secondary" onclick="exportExcel()">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Cards (filtered) -->
+            <div class="cards-grid" id="statsCards">
+                <!-- Cards will be generated here -->
+            </div>
+
+            <!-- Ranking -->
+            <div class="ranking">
+                <h3><i class="fas fa-trophy"></i> Ranking de Contas (Período Filtrado)</h3>
+                <div id="rankingContainer">
+                    <!-- Ranking items will be generated here -->
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-line"></i> Evolução do Faturamento</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-pie"></i> Distribuição por Conta</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-bar"></i> Comparativo de Contas</h3>
+                <div class="chart-wrapper">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Tab -->
+        <div id="manage" class="tab-content">
+            <!-- Alert -->
+            <div id="alertManage" class="alert"></div>
+
+            <!-- Form -->
+            <div class="form-container">
+                <h3><i class="fas fa-plus-circle"></i> Adicionar Registro</h3>
+                <form id="dataForm" onsubmit="saveData(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Data</label>
+                        <input type="date" id="inputDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> @lolamodas.ia</label>
+                        <input type="number" id="inputLola" step="0.01" min="0" placeholder="R$ 0,00" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> @laladaroca</label>
+                        <input type="number" id="inputLala" step="0.01" min="0" placeholder="R$ 0,00" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> @dudamodas05</label>
+                        <input type="number" id="inputDuda" step="0.01" min="0" placeholder="R$ 0,00" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> @judourado.shop</label>
+                        <input type="number" id="inputJu" step="0.01" min="0" placeholder="R$ 0,00" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> @mariadourado.shop</label>
+                        <input type="number" id="inputMaria" step="0.01" min="0" placeholder="R$ 0,00" required>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-save"></i> Salvar Registro
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-container">
+                <h3><i class="fas fa-table"></i> Registros Salvos</h3>
+                <div id="tableContent">
+                    <!-- Table will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Editar Registro</h3>
+                <button class="modal-close" onclick="closeEditModal()">×</button>
+            </div>
+            <form id="editForm" onsubmit="updateData(event)">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label><i class="fas fa-calendar"></i> Data</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> @lolamodas.ia</label>
+                    <input type="number" id="editLola" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> @laladaroca</label>
+                    <input type="number" id="editLala" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> @dudamodas05</label>
+                    <input type="number" id="editDuda" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> @judourado.shop</label>
+                    <input type="number" id="editJu" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> @mariadourado.shop</label>
+                    <input type="number" id="editMaria" step="0.01" min="0" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i> Atualizar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Meta Modal -->
+    <div id="metaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bullseye"></i> Editar Meta Mensal</h3>
+                <button class="modal-close" onclick="closeMetaModal()">×</button>
+            </div>
+            <form id="metaForm" onsubmit="updateMeta(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-dollar-sign"></i> Meta Mensal (R$)</label>
+                    <input type="number" id="metaValue" step="0.01" min="0" placeholder="Ex: 15000" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i> Salvar Meta
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeMetaModal()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
