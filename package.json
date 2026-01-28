@@ -12,13 +12,20 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "express-session": "^1.17.3",
     "pg": "^8.11.3",
     "dotenv": "^16.3.1",
-    "bcryptjs": "^2.4.3",
     "exceljs": "^4.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   }
 }
+```
+
+---
+
+## 2. .env.example (COMPLETO - removendo variáveis de login)
+```
+NODE_ENV=production
+DATABASE_URL=postgresql://tiktok_user:tiktok_pass@db:5432/tiktok_shop
+PORT=3000
