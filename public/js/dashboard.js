@@ -22,7 +22,6 @@ const accountMapReverse = {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
-    await checkAuth();
     await loadData();
     await loadMeta();
     setTodayDate();
@@ -30,29 +29,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     renderTable();
 });
 
-// Check authentication
-async function checkAuth() {
-    try {
-        const response = await fetch('/api/auth/check');
-        const data = await response.json();
-        
-        if (!data.authenticated) {
-            window.location.href = '/';
-        }
-    } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-        window.location.href = '/';
-    }
-}
-
-// Logout
+// Logout (desabilitado temporariamente)
 async function logout() {
-    try {
-        await fetch('/api/logout', { method: 'POST' });
-        window.location.href = '/';
-    } catch (error) {
-        console.error('Erro ao fazer logout:', error);
-    }
+    alert('Login desabilitado temporariamente');
 }
 
 // Load data from API
